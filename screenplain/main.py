@@ -71,7 +71,7 @@ def main(args):
         action='store_true',
         dest='multicam',
         help=(
-            'Adjust output spacing and margins to conform to '
+            'Output in '
             'multicam teleplay format.'
         )
     )

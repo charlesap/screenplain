@@ -66,6 +66,15 @@ def main(args):
             'Bold and Underlined.'
         )
     )
+    parser.add_option(
+        '--multicam',
+        action='store_true',
+        dest='multicam',
+        help=(
+            'Adjust output spacing and margins to conform to '
+            'multicam teleplay format.'
+        )
+    )
     options, args = parser.parse_args(args)
     if len(args) >= 3:
         parser.error('Too many arguments')

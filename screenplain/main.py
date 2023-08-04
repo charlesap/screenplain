@@ -136,6 +136,7 @@ def main(args):
             from screenplain.export import pdf
             settings = pdf.create_default_settings()
             settings.strong_slugs = options.strong
+            settings.multicam = options.multicam
             pdf.to_pdf(screenplay, output, settings=settings)
     finally:
         if output_file:

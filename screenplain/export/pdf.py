@@ -59,6 +59,7 @@ class Settings:
 
     # True if sluglines should be bold
     strong_slugs: bool
+    multicam: bool
 
     frame_height: float
     frame_width: float
@@ -73,6 +74,7 @@ class Settings:
         characters_per_line=61,
         page_size=pagesizes.letter,
         strong_slugs=False,
+        multicam=False,
     ):
         line_height = line_height or font_size
 
@@ -97,6 +99,7 @@ class Settings:
             self.left_margin + self.left_margin
         )
         self.strong_slugs = strong_slugs
+        self.multicam = multicam
 
         default_style = ParagraphStyle(
             'default',

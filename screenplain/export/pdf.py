@@ -124,6 +124,13 @@ class Settings:
             leftIndent=19 * self.character_width,
             keepWithNext=1,
         )
+        self.multicam_dialog_style = ParagraphStyle(
+            'dialog', default_style,
+            spaceBefore=line_height,
+            leading=line_height*2,
+            leftIndent=9 * self.character_width,
+            rightIndent=self.frame_width - (45 * self.character_width),
+        )
         self.dialog_style = ParagraphStyle(
             'dialog', default_style,
             leftIndent=9 * self.character_width,
@@ -135,6 +142,10 @@ class Settings:
             keepWithNext=1,
         )
         self.action_style = ParagraphStyle(
+            'action', default_style,
+            spaceBefore=line_height,
+        )
+        self.multicam_action_style = ParagraphStyle(
             'action', default_style,
             spaceBefore=line_height,
         )
@@ -229,7 +240,7 @@ def add_slug(story, para, style, is_strong):
         story.append(Paragraph(html, style))
 
 
-def add_dialog(story, dialog, settings: Settings):
+def add_dialog(story, dialog, settings: Settings, multicam):
     story.append(
         Paragraph(dialog.character.to_html(), settings.character_style)
     )
@@ -239,9 +250,14 @@ def add_dialog(story, dialog, settings: Settings):
                 Paragraph(line.to_html(), settings.parenthentical_style)
             )
         else:
-            story.append(
-                Paragraph(line.to_html(), settings.dialog_style)
-            )
+            if multicam:
+                story.append(
+                    Paragraph(line.to_html(), settings.multicam_dialog_style)
+                )
+            else:
+                story.append(
+                    Paragraph(line.to_html(), settings.dialog_style)
+                )
 
 
 def add_dual_dialog(story, dual, settings: Settings):
@@ -346,7 +362,7 @@ def to_pdf(
 
     for para in screenplay:
         if isinstance(para, Dialog):
-            add_dialog(story, para, settings)
+            add_dialog(story, para, settings, settings.multicam)
         elif isinstance(para, DualDialog):
             add_dual_dialog(story, para, settings)
         elif isinstance(para, Action):

@@ -224,12 +224,23 @@ class DocTemplate(BaseDocTemplate):
         self._handle_pageBegin()
 
 
-def add_paragraph(story, para, style):
-    story.append(Paragraph(
-        '<br/>'.join(line.to_html() for line in para.lines),
-        style
-    ))
+#def add_paragraph(story, para, multicam, style):
+#    thing='<br/>'
+#    for line in para.lines:
+#        thing.join(line.to_html())
+#    story.append(Paragraph(thing,style))
 
+def add_paragraph(story, para, multicam, style):
+    if multicam:
+        story.append(Paragraph(
+            '<br/>'.join(line.to_html().upper() for line in para.lines),
+            style
+        ))
+    else:
+        story.append(Paragraph(
+            '<br/>'.join(line.to_html() for line in para.lines),
+            style
+        ))
 
 def add_slug(story, para, style, is_strong):
     for line in para.lines:
@@ -368,6 +379,7 @@ def to_pdf(
         elif isinstance(para, Action):
             add_paragraph(
                 story, para,
+                settings.multicam,
                 settings.centered_action_style
                 if para.centered
                 else settings.action_style
@@ -375,7 +387,7 @@ def to_pdf(
         elif isinstance(para, Slug):
             add_slug(story, para, settings.slug_style, settings.strong_slugs)
         elif isinstance(para, Transition):
-            add_paragraph(story, para, settings.transition_style)
+            add_paragraph(story, para, False, settings.transition_style)
         elif isinstance(para, types.PageBreak):
             story.append(platypus.PageBreak())
         else:

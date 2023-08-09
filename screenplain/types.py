@@ -58,6 +58,7 @@ class Slug(object):
         self.line = line
         self.scene_number = scene_number
         self.synopsis = None
+        self.whom = None
 
     @property
     def lines(self):
@@ -66,6 +67,8 @@ class Slug(object):
     def set_synopsis(self, text):
         self.synopsis = text
 
+    def set_whom(self, text):
+        self.whom = text
 
 class Section(object):
     """A section heading."""

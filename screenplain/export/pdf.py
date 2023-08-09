@@ -40,11 +40,19 @@ class Settings:
 
     # Screenplay styles
     character_style: ParagraphStyle
+    snug_character_style: ParagraphStyle
     dialog_style: ParagraphStyle
-    parenthentical_style: ParagraphStyle
+    snug_dialog_style: ParagraphStyle
+    parenthetical_style: ParagraphStyle
+    multicam_parenthetical_style: ParagraphStyle
     action_style: ParagraphStyle
+    snug_action_style: ParagraphStyle
     centered_action_style: ParagraphStyle
+    snug_centered_action_style: ParagraphStyle
     slug_style: ParagraphStyle
+    snug_slug_style: ParagraphStyle
+    whom_slug_style: ParagraphStyle
+    whom_style: ParagraphStyle
     transition_style: ParagraphStyle
 
     # Title page styles
@@ -118,6 +126,12 @@ class Settings:
             alignment=TA_CENTER,
         )
 
+        self.snug_character_style = ParagraphStyle(
+            'snug-character', default_style,
+            leading=0,
+            leftIndent=19 * self.character_width,
+            keepWithNext=1,
+        )
         self.character_style = ParagraphStyle(
             'character', default_style,
             spaceBefore=line_height,
@@ -125,7 +139,7 @@ class Settings:
             keepWithNext=1,
         )
         self.multicam_dialog_style = ParagraphStyle(
-            'dialog', default_style,
+            'multicam-dialog', default_style,
             spaceBefore=line_height,
             leading=line_height*2,
             leftIndent=9 * self.character_width,
@@ -136,26 +150,60 @@ class Settings:
             leftIndent=9 * self.character_width,
             rightIndent=self.frame_width - (45 * self.character_width),
         )
-        self.parenthentical_style = ParagraphStyle(
-            'parenthentical', default_style,
+        self.multicam_parenthetical_style = ParagraphStyle(
+            'multicam-parenthetical', default_style,
+            spaceBefore=line_height,
+            leading=line_height,
             leftIndent=13 * self.character_width,
             keepWithNext=1,
+        )
+        self.parenthetical_style = ParagraphStyle(
+            'parenthetical', default_style,
+            leftIndent=13 * self.character_width,
+            keepWithNext=1,
+        )
+        self.snug_action_style = ParagraphStyle(
+            'snug-action', default_style,
+            spaceBefore=0,
+            leading=line_height,
         )
         self.action_style = ParagraphStyle(
             'action', default_style,
             spaceBefore=line_height,
         )
         self.multicam_action_style = ParagraphStyle(
-            'action', default_style,
+            'multicam-action', default_style,
             spaceBefore=line_height,
+        )
+        self.snug_centered_action_style = ParagraphStyle(
+            'snug-centered-action', self.action_style,
+            leading=0,
+            alignment=TA_CENTER,
         )
         self.centered_action_style = ParagraphStyle(
             'centered-action', self.action_style,
             alignment=TA_CENTER,
         )
+        self.snug_slug_style = ParagraphStyle(
+            'snug-slug', default_style,
+            spaceBefore=line_height,
+            spaceAfter=line_height,
+            keepWithNext=1,
+        )
         self.slug_style = ParagraphStyle(
             'slug', default_style,
             spaceBefore=line_height,
+            spaceAfter=line_height,
+            keepWithNext=1,
+        )
+        self.whom_slug_style = ParagraphStyle(
+            'whom-slug', default_style,
+            spaceBefore=line_height,
+            spaceAfter=0,
+            keepWithNext=1,
+        )
+        self.whom_style = ParagraphStyle(
+            'whom', default_style,
             spaceAfter=line_height,
             keepWithNext=1,
         )
@@ -230,45 +278,74 @@ class DocTemplate(BaseDocTemplate):
 #        thing.join(line.to_html())
 #    story.append(Paragraph(thing,style))
 
-def add_paragraph(story, para, multicam, style):
-    if multicam:
+def add_paragraph(story, para, settings, centered, snug):
+    st = settings.action_style
+    if not settings.multicam:
+        if centered:
+            st = settings.centered_action_style
+    if settings.multicam and snug:
+        st = settings.snug_action_style
+        if centered:
+            st = settings.snug_centered_action_style
+    if settings.multicam and not snug:
+        if centered:
+            st = settings.centered_action_style
+
+    if settings.multicam:
         story.append(Paragraph(
             '<br/>'.join(line.to_html().upper() for line in para.lines),
-            style
+            st
         ))
     else:
         story.append(Paragraph(
             '<br/>'.join(line.to_html() for line in para.lines),
-            style
+            st
         ))
+    snug = False
+    return snug
 
-def add_slug(story, para, style, is_strong):
+def add_slug(story, para, settings, snug):
     for line in para.lines:
-        if is_strong:
+        if settings.strong_slugs or settings.multicam:
             html = '<b><u>' + line.to_html() + '</u></b>'
         else:
             html = line.to_html()
-        story.append(Paragraph(html, style))
+        if para.whom is not None:
+            story.append(Paragraph(html, settings.whom_slug_style))
+            b = [para.whom]
+            story.append(Paragraph('<br/>'.join(b), settings.whom_style))
+        else:
+            story.append(Paragraph(html, settings.slug_style))
 
+    snug = False
+    return snug
 
-def add_dialog(story, dialog, settings: Settings, multicam):
+def add_dialog(story, dialog, settings: Settings, multicam, snug):
+    cs = settings.character_style
+    if snug:
+        cs = settings.snug_character_style
     story.append(
-        Paragraph(dialog.character.to_html(), settings.character_style)
+        Paragraph(dialog.character.to_html(), cs)
     )
+    
     for parenthetical, line in dialog.blocks:
         if parenthetical:
+            ps=settings.parenthetical_style
+            if multicam:
+                ps = settings.multicam_parenthetical_style
             story.append(
-                Paragraph(line.to_html(), settings.parenthentical_style)
+                Paragraph(line.to_html(), ps)
             )
         else:
+            ds=settings.dialog_style
             if multicam:
-                story.append(
-                    Paragraph(line.to_html(), settings.multicam_dialog_style)
-                )
-            else:
-                story.append(
-                    Paragraph(line.to_html(), settings.dialog_style)
-                )
+                ds = settings.multicam_dialog_style
+            story.append(
+                Paragraph(line.to_html(), ds)
+            )
+    if multicam:
+        snug = True
+    return snug            
 
 
 def add_dual_dialog(story, dual, settings: Settings):
@@ -371,23 +448,23 @@ def to_pdf(
     story = get_title_page_story(screenplay, settings)
     has_title_page = bool(story)
 
+    snug = False
     for para in screenplay:
         if isinstance(para, Dialog):
-            add_dialog(story, para, settings, settings.multicam)
+            snug = add_dialog(story, para, settings, settings.multicam, snug)
         elif isinstance(para, DualDialog):
             add_dual_dialog(story, para, settings)
         elif isinstance(para, Action):
-            add_paragraph(
+            snug = add_paragraph(
                 story, para,
-                settings.multicam,
-                settings.centered_action_style
-                if para.centered
-                else settings.action_style
+                settings,
+                para.centered,
+                snug
             )
         elif isinstance(para, Slug):
-            add_slug(story, para, settings.slug_style, settings.strong_slugs)
+            snug = add_slug(story, para, settings, snug)
         elif isinstance(para, Transition):
-            add_paragraph(story, para, False, settings.transition_style)
+            snug = add_paragraph(story, para, settings, False, snug)
         elif isinstance(para, types.PageBreak):
             story.append(platypus.PageBreak())
         else:

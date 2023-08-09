@@ -69,7 +69,8 @@ class InputParagraph(object):
         )
 
     def append_slug(self, paragraphs):
-        if len(self.lines) != 1:
+        lc = len(self.lines)
+        if (lc < 1) or (lc > 2):
             return False
 
         match = slug_re.match(self.lines[0])
@@ -87,6 +88,11 @@ class InputParagraph(object):
             paragraphs.append(Slug(_string_to_rich(text), plain(scene_number)))
         else:
             paragraphs.append(Slug(_string_to_rich(text)))
+
+        if lc == 2:
+            whom = self.lines[1]
+            paragraphs[-1].set_whom(whom[1:].lstrip())
+
         return True
 
     def append_sections_and_synopsises(self, paragraphs):
